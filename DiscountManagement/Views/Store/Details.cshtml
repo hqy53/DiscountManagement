@@ -1,0 +1,10 @@
+﻿@model DiscountManagement.Models.StoreDto
+@{
+    ViewBag.Title = "Details";
+}
+
+<a href="/Store/List">Go back to store list</a>
+<h2>@Model.StoreName</h2>
+<div>Discount code: @Model.DiscountCode</div>
+<div>Discount rate: @Model.DiscountPercentage</div>
+

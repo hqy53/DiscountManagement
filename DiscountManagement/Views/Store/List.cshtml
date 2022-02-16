@@ -1,0 +1,14 @@
+﻿@model IEnumerable<DiscountManagement.Models.StoreDto>
+@{
+    ViewBag.Title = "List";
+}
+
+<h2>List</h2>
+@foreach (var store in Model)
+{
+    <h2><a href="/Store/Details/@store.StoreID">@store.StoreName</a></h2>
+    <div>Discount code: @store.DiscountCode</div>
+    <div>Discount rate: @store.DiscountPercentage</div>
+
+}
+
