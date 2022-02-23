@@ -1,10 +1,22 @@
-﻿@model DiscountManagement.Models.ProductDto
+﻿@model DiscountManagement.Models.ViewModels.DetailsProduct
 @{
     ViewBag.Title = "Details";
 }
 
 <a href="/Product/List">Go back to product list</a>
-<h2>@Model.ProductName</h2>
-<div>Price: @Model.Price</div>
-<div>URL: @Model.URL</div>
+<br />
+<a href="/Product/Edit/@Model.SelectedProduct.ProductID">Update</a>
+<br />
+<a style="color:#ab2020;" href="/Product/DeleteConfirm/@Model.SelectedProduct.ProductID">Delete</a>
+<h2>@Model.SelectedProduct.ProductName</h2>
+<div>Price: @Model.SelectedProduct.Price</div>
+<div>URL: @Model.SelectedProduct.URL</div>
 
+<div>
+    <h3>Available on:</h3>
+    @foreach (var store in Model.SellingStores)
+    {
+        <a href="/Store/Details/@store.StoreID">@store.StoreName</a><br />
+
+    }
+</div>

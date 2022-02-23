@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Net.Http;
 using System.Diagnostics;
 using DiscountManagement.Models;
+using DiscountManagement.Models.ViewModels;
 using System.Web.Script.Serialization;
 
 
@@ -19,7 +20,7 @@ namespace DiscountManagement.Controllers
         static ProductController()
         {
             client = new HttpClient();
-            client.BaseAddress = new Uri("https://localhost:44350/api/productdata/");
+            client.BaseAddress = new Uri("https://localhost:44350/api/");
         }
         // GET: Product/List
         public ActionResult List()
@@ -27,34 +28,43 @@ namespace DiscountManagement.Controllers
             //objective: communicate with our product data api to retrieve a list of products
             //curl https://localhost:44350/api/productdata/listproducts
 
-            string url = "listproducts";
+            string url = "productdata/listproducts";
             HttpResponseMessage response = client.GetAsync(url).Result;
 
             //Debug.WriteLine("The response code is: ");
             //Debug.WriteLine(response.StatusCode);
 
             IEnumerable<ProductDto> products = response.Content.ReadAsAsync<IEnumerable<ProductDto>>().Result;
-            
+
             return View(products);
         }
 
         // GET: Product/Details/5
         public ActionResult Details(int id)
         {
+            DetailsProduct ViewModel = new DetailsProduct();
             //objective: communicate with our product data api to retrieve one product
             //curl https://localhost:44350/api/productdata/findproduct/{id}
 
-            string url = "findproduct/" + id;
+            string url = "productdata/findproduct/" + id;
             HttpResponseMessage response = client.GetAsync(url).Result;
 
             Debug.WriteLine("The response code is: ");
             Debug.WriteLine(response.StatusCode);
 
-            ProductDto selectedProduct = response.Content.ReadAsAsync<ProductDto>().Result;
+            ProductDto SelectedProduct = response.Content.ReadAsAsync<ProductDto>().Result;
             Debug.WriteLine("Product received: ");
-            Debug.WriteLine(selectedProduct.ProductName);
+            Debug.WriteLine(SelectedProduct.ProductName);
 
-            return View(selectedProduct);
+            ViewModel.SelectedProduct = SelectedProduct;
+
+            //show all stores that sell the product
+            url = "storedata/liststoresforproduct/" + id;
+            response = client.GetAsync(url).Result;
+            IEnumerable<StoreDto> SellingStores = response.Content.ReadAsAsync<IEnumerable<StoreDto>>().Result;
+
+            ViewModel.SellingStores = SellingStores;
+            return View(ViewModel);
         }
         public ActionResult Error()
         {
@@ -74,7 +84,7 @@ namespace DiscountManagement.Controllers
             //Debug.WriteLine(product.ProductName);
             //objective: add a new animal into our system using the API
             //curl -H "Content-Type:application/json" -d @product.json https://localhost:44350/api/productdata/addproduct
-            string url = "addproduct";
+            string url = "productdata/addproduct";
 
             string jsonpayload = jss.Serialize(product);
 
@@ -93,51 +103,65 @@ namespace DiscountManagement.Controllers
                 return RedirectToAction("Error");
             }
 
-            return RedirectToAction("List");
+
         }
 
         // GET: Product/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            string url = "productdata/findproduct/" + id;
+            HttpResponseMessage response = client.GetAsync(url).Result;
+            ProductDto selectedProduct = response.Content.ReadAsAsync<ProductDto>().Result;
+            return View(selectedProduct);
         }
 
-        // POST: Product/Edit/5
+        // POST: Product/Update/5
         [HttpPost]
-        public ActionResult Edit(int id, FormCollection collection)
+        public ActionResult Update(int id, Product Product)
         {
-            try
+            string url = "productdata/updateproduct/" + id;
+            string jsonpayload = jss.Serialize(Product);
+            HttpContent content = new StringContent(jsonpayload);
+            content.Headers.ContentType.MediaType = "application/json";
+            HttpResponseMessage response = client.PostAsync(url, content).Result;
+            Debug.WriteLine(content);
+            if (response.IsSuccessStatusCode)
             {
-                // TODO: Add update logic here
-
-                return RedirectToAction("Index");
+                return RedirectToAction("List");
             }
-            catch
+            else
             {
-                return View();
+                return RedirectToAction("Error");
             }
         }
 
         // GET: Product/Delete/5
-        public ActionResult Delete(int id)
+        public ActionResult DeleteConfirm(int id)
         {
-            return View();
+            string url = "productdata/findproduct/" + id;
+            HttpResponseMessage response = client.GetAsync(url).Result;
+            ProductDto selectedProduct = response.Content.ReadAsAsync<ProductDto>().Result;
+            return View(selectedProduct);
         }
 
         // POST: Product/Delete/5
         [HttpPost]
-        public ActionResult Delete(int id, FormCollection collection)
+        public ActionResult Delete(int id)
         {
-            try
-            {
-                // TODO: Add delete logic here
+            string url = "productdata/deleteproduct/" + id;
+            HttpContent content = new StringContent("");
+            content.Headers.ContentType.MediaType = "application/json";
+            HttpResponseMessage response = client.PostAsync(url, content).Result;
 
-                return RedirectToAction("Index");
-            }
-            catch
+            if (response.IsSuccessStatusCode)
             {
-                return View();
+                return RedirectToAction("List");
+            }
+            else
+            {
+                return RedirectToAction("Error");
             }
         }
+        
     }
 }

@@ -1,0 +1,16 @@
+﻿@model DiscountManagement.Models.StoreDto
+@{
+    ViewBag.Title = "DeleteConfirm";
+}
+
+<h2>Are you sure you want to delete this store?</h2>
+<a href="/Store/List">Cancel</a>
+<h2>@Model.StoreName</h2>
+<div>Discount code: @Model.DiscountCode</div>
+<div>Discount rate: @Model.DiscountPercentage</div>
+<form action="/Store/Delete/@Model.StoreID" method="POST">
+    <input type="submit" value="Confirm Delete" />
+
+</form>
+
+

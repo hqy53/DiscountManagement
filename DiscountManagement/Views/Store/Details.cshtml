@@ -1,10 +1,36 @@
-﻿@model DiscountManagement.Models.StoreDto
+﻿@model DiscountManagement.Models.ViewModels.DetailsStore
 @{
     ViewBag.Title = "Details";
 }
 
 <a href="/Store/List">Go back to store list</a>
-<h2>@Model.StoreName</h2>
-<div>Discount code: @Model.DiscountCode</div>
-<div>Discount rate: @Model.DiscountPercentage</div>
+<br />
+<a href="/Store/Edit/@Model.SelectedStore.StoreID">Update</a>
+<br />
+<a style="color:#ab2020;" href="/Store/DeleteConfirm/@Model.SelectedStore.StoreID">Delete</a>
+<h2>@Model.SelectedStore.StoreName</h2>
+<div>Discount code: @Model.SelectedStore.DiscountCode</div>
+<div>Discount rate: @Model.SelectedStore.DiscountPercentage</div>
 
+<div>
+    <h2>@Model.SelectedStore.StoreName is selling:</h2>
+    @foreach (var product in Model.SellingProducts)
+    {
+
+        <a href="/Product/Details/@product.ProductID">@product.ProductName</a> <a style="color:#ab2020;" href="/Store/Unassociate/@Model.SelectedStore.StoreID?ProductID=@product.ProductID">[x]</a><br />
+    }
+
+    <div>
+        <h4>Add new Product to sell in @Model.SelectedStore.StoreName</h4>
+        <form method="POST" action="/Store/Associate/@Model.SelectedStore.StoreID">
+            <select name="ProductID">
+                @foreach (var product in Model.AvailableProducts)
+                {
+                    <option value="@product.ProductID">@product.ProductName</option>
+                }
+
+            </select>
+            <input type="submit" value="Associate Product" />
+        </form>
+    </div>
+</div>

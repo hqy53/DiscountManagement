@@ -1,0 +1,27 @@
+﻿@model DiscountManagement.Models.ProductDto
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Update Product</h2>
+<form action="/Product/Update/@Model.ProductID" method="POST">
+    <div style="display:none;">
+        @* Pass through the Product ID *@
+        <input type="text" name="ProductID" value="@Model.ProductID" />
+    </div>
+    <div>
+        <label>Name: </label> <input type="text" name="ProductName" value="@Model.ProductName"/>
+    </div>
+    <div>
+        <label>Price: </label> <input type="number" name="Price" value="@Model.Price"/>
+    </div>
+    <div>
+        <label>URL: </label> <input type="text" name="URL" value="@Model.URL"/>
+    </div>
+
+    <div>
+        <input type="submit" value="Update Product" />
+
+    </div>
+</form>
+

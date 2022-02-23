@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using System.Net.Http;
 using System.Diagnostics;
 using DiscountManagement.Models;
+using DiscountManagement.Models.ViewModels;
 using System.Web.Script.Serialization;
 
 namespace DiscountManagement.Controllers
@@ -18,7 +19,7 @@ namespace DiscountManagement.Controllers
         static StoreController()
         {
             client = new HttpClient();
-            client.BaseAddress = new Uri("https://localhost:44350/api/storedata/");
+            client.BaseAddress = new Uri("https://localhost:44350/api/");
         }
 
         // GET: Store/List
@@ -27,7 +28,7 @@ namespace DiscountManagement.Controllers
             //objective: communicative with our store data api to retrieve a list of stores
             // curl https://localhost:44350/api/storedata/liststores
 
-            string url = "liststores";
+            string url = "storedata/liststores";
             HttpResponseMessage response = client.GetAsync(url).Result;
 
             //Debug.WriteLine("The response code is ");
@@ -43,23 +44,66 @@ namespace DiscountManagement.Controllers
         // GET: Store/Details/5
         public ActionResult Details(int id)
         {
+            DetailsStore ViewModel = new DetailsStore();
+
             //objective: communicative with our store data api to retrieve one store
             // curl https://localhost:44350/api/storedata/findstore/{id}
 
-            string url = "findstore/" + id;
+            string url = "storedata/findstore/" + id;
             HttpResponseMessage response = client.GetAsync(url).Result;
 
             Debug.WriteLine("The response code is ");
             Debug.WriteLine(response.StatusCode);
 
-            StoreDto selectedStore = response.Content.ReadAsAsync<StoreDto>().Result;
+            StoreDto SelectedStore = response.Content.ReadAsAsync<StoreDto>().Result;
             Debug.WriteLine("Store received: ");
-            Debug.WriteLine(selectedStore.StoreName);
-            
+            Debug.WriteLine(SelectedStore.StoreName);
 
-            return View(selectedStore);
+            ViewModel.SelectedStore = SelectedStore;
+
+            //show associated products with this store
+            url = "productdata/listproductsforstore/" + id;
+            response = client.GetAsync(url).Result;
+            IEnumerable<ProductDto> SellingProducts = response.Content.ReadAsAsync<IEnumerable<ProductDto>>().Result;
+
+            ViewModel.SellingProducts = SellingProducts;
+
+            url = "productdata/listproductsnotforstore/" + id;
+            response = client.GetAsync(url).Result;
+            IEnumerable<ProductDto> AvailableProducts = response.Content.ReadAsAsync<IEnumerable<ProductDto>>().Result;
+
+            ViewModel.AvailableProducts = AvailableProducts;
+
+            return View(ViewModel);
         }
+        //POST: Store/Associate/{storeid}
+        [HttpPost]
+        public ActionResult Associate(int id, int ProductID)
+        {
+            Debug.WriteLine("Attempting to associate store :" + id + " with product " + ProductID);
 
+            //call our api to associate store with product
+            string url = "storedata/associatestorewithproduct/" + id + "/" + ProductID;
+            HttpContent content = new StringContent("");
+            content.Headers.ContentType.MediaType = "application/json";
+            HttpResponseMessage response = client.PostAsync(url, content).Result;
+
+            return RedirectToAction("Details/" + id);
+        }
+        //Get: Store/UnAssociate/{id}?ProductID={productID}
+        [HttpGet]
+        public ActionResult UnAssociate(int id, int ProductID)
+        {
+            Debug.WriteLine("Attempting to unassociate store :" + id + " with product: " + ProductID);
+
+            //call our api to associate store with product
+            string url = "storedata/unassociatestorewithproduct/" + id + "/" + ProductID;
+            HttpContent content = new StringContent("");
+            content.Headers.ContentType.MediaType = "application/json";
+            HttpResponseMessage response = client.PostAsync(url, content).Result;
+
+            return RedirectToAction("Details/" + id);
+        }
         public ActionResult Error()
         {
             return View();
@@ -80,7 +124,7 @@ namespace DiscountManagement.Controllers
             //objective: add a new store into our system using the API
             //curl -H "Content-Type:application/json" -d @store.json https://localhost:44350/api/storedata/addstore
 
-            string url = "addstore";
+            string url = "storedata/addstore";
 
             string jsonpayload = jss.Serialize(store);
 
@@ -104,44 +148,61 @@ namespace DiscountManagement.Controllers
         // GET: Store/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            UpdateStore ViewModel = new UpdateStore();
+            //the existing store information
+            string url = "storedata/findstore/" + id;
+            HttpResponseMessage response = client.GetAsync(url).Result;
+            StoreDto SelectedStore = response.Content.ReadAsAsync<StoreDto>().Result;
+            ViewModel.SelectedStore = SelectedStore;
+
+            return View(ViewModel);
         }
 
-        // POST: Store/Edit/5
+        // POST: Store/Update/5
         [HttpPost]
-        public ActionResult Edit(int id, FormCollection collection)
+        public ActionResult Update(int id, Store store)
         {
-            try
+            string url = "storedata/updatestore/" + id;
+            string jsonpayload = jss.Serialize(store);
+            HttpContent content = new StringContent(jsonpayload);
+            content.Headers.ContentType.MediaType = "application/json";
+            HttpResponseMessage response = client.PostAsync(url, content).Result;
+            Debug.WriteLine(content);
+            if (response.IsSuccessStatusCode)
             {
-                // TODO: Add update logic here
-
-                return RedirectToAction("Index");
+                return RedirectToAction("List");
             }
-            catch
+            else
             {
-                return View();
+                return RedirectToAction("Error");
             }
         }
 
         // GET: Store/Delete/5
-        public ActionResult Delete(int id)
+        public ActionResult DeleteConfirm(int id)
         {
-            return View();
+            string url = "storedata/findstore/" + id;
+            HttpResponseMessage response = client.GetAsync(url).Result;
+            StoreDto selectedstore = response.Content.ReadAsAsync<StoreDto>().Result;
+            return View(selectedstore);
         }
 
         // POST: Store/Delete/5
         [HttpPost]
-        public ActionResult Delete(int id, FormCollection collection)
+        public ActionResult Delete(int id)
         {
-            try
-            {
-                // TODO: Add delete logic here
+            string url = "storedata/deletestore/" + id;
+            HttpContent content = new StringContent("");
+            content.Headers.ContentType.MediaType = "application/json";
+            HttpResponseMessage response = client.PostAsync(url, content).Result;
 
-                return RedirectToAction("Index");
-            }
-            catch
+            if (response.IsSuccessStatusCode)
             {
-                return View();
+                return RedirectToAction("List");
+            }
+            else
+            {
+                return RedirectToAction("Error");
             }
         }
     }

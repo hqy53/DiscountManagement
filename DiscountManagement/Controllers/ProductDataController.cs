@@ -16,25 +16,112 @@ namespace DiscountManagement.Controllers
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
-        // GET: api/ProductData/ListProducts
+        /// <summary>
+        /// Returns all Products in the system.
+        /// </summary>
+        /// <returns>
+        /// HEADER: 200 (OK)
+        /// CONTENT: all Products in the database
+        /// </returns>
+        /// <example>
+        /// GET: api/ProductData/ListProducts
+        /// </example>
         [HttpGet]
-        public IEnumerable<ProductDto> ListProducts()
+        [ResponseType(typeof(ProductDto))]
+        public IHttpActionResult ListProducts()
         {
             List<Product> Products = db.Products.ToList();
             List<ProductDto> ProductDtos = new List<ProductDto>();
 
-            Products.ForEach(a => ProductDtos.Add(new ProductDto()
+            Products.ForEach(p => ProductDtos.Add(new ProductDto()
             {
-                ProductID = a.ProductID,
-                ProductName = a.ProductName,
-                Price = a.Price,
-                URL = a.URL
+                ProductID = p.ProductID,
+                ProductName = p.ProductName,
+                Price = p.Price,
+                URL = p.URL
             }));
-            return ProductDtos;
+
+            return Ok(ProductDtos);
         }
 
-        // GET: api/ProductData/FindProduct/5
-        [ResponseType(typeof(Product))]
+        /// <summary>
+        /// Returns all Products in the system 
+        /// </summary>
+        /// <returns>
+        /// HEADER: 200 (OK)
+        /// CONTENT: all Products in the database that are sold by a particular store
+        /// </returns>
+        /// <param name="id">Store Primary Key</param>
+        /// <example>
+        /// GET: api/ProductData/ListProductsForStore/2
+        /// </example>
+        [HttpGet]
+        [ResponseType(typeof(ProductDto))]
+        public IHttpActionResult ListProductsForStore(int id)
+        {
+            List<Product> Products = db.Products.Where(
+                p => p.Stores.Any(
+                    s => s.StoreID == id)
+                ).ToList();
+            List<ProductDto> ProductDtos = new List<ProductDto>();
+
+            Products.ForEach(p => ProductDtos.Add(new ProductDto()
+            {
+                ProductID = p.ProductID,
+                ProductName = p.ProductName,
+                Price = p.Price,
+                URL = p.URL
+            }));
+
+            return Ok(ProductDtos);
+        }
+
+        /// <summary>
+        /// Returns Products in the system not sold by a particular store
+        /// </summary>
+        /// <returns>
+        /// HEADER: 200 (OK)
+        /// CONTENT: all Products in the database not sold by a particular store
+        /// </returns>
+        /// <param name="id">Store Primary Key</param>
+        /// <example>
+        /// GET: api/ProductData/ListProductsNotForStore/4
+        /// </example>
+        [HttpGet]
+        [ResponseType(typeof(ProductDto))]
+        public IHttpActionResult ListProductsNotForStore(int id)
+        {
+            List<Product> Products = db.Products.Where(
+                 p => !p.Stores.Any(
+                      s => s.StoreID == id)
+             ).ToList();
+            List<ProductDto> ProductDtos = new List<ProductDto>();
+
+            Products.ForEach(p => ProductDtos.Add(new ProductDto()
+            {
+                ProductID = p.ProductID,
+                ProductName = p.ProductName,
+                Price = p.Price,
+                URL = p.URL
+            }));
+
+            return Ok(ProductDtos);
+        }
+
+        /// <summary>
+        /// Returns all Products in the system.
+        /// </summary>
+        /// <returns>
+        /// HEADER: 200 (OK)
+        /// CONTENT: A product in the system matching up to the Store ID primary key
+        /// or
+        /// HEADER: 404 (NOT FOUND)
+        /// </returns>
+        /// <param name="id">The primary key of the Product</param>
+        /// <example>
+        /// GET: api/ProductData/FindProduct/3
+        /// </example>
+        [ResponseType(typeof(ProductDto))]
         [HttpGet]
         public IHttpActionResult FindProduct(int id)
         {
@@ -54,7 +141,22 @@ namespace DiscountManagement.Controllers
             return Ok(ProductDto);
         }
 
-        // PUT: api/ProductData/UpdateProduct/5
+        /// <summary>
+        /// Updates a particular Product in the system with POST Data input
+        /// </summary>
+        /// <param name="id">Represents the Producy ID primary key</param>
+        /// <param name="product">JSON FORM DATA of an Product</param>
+        /// <returns>
+        /// HEADER: 204 (Success, No Content Response)
+        /// or
+        /// HEADER: 400 (Bad Request)
+        /// or
+        /// HEADER: 404 (Not Found)
+        /// </returns>
+        /// <example>
+        /// POST: api/ProductData/UpdateProduct/5
+        /// FORM DATA: Product JSON Object
+        /// </example>
         [ResponseType(typeof(void))]
         [HttpPost]
         public IHttpActionResult UpdateProduct(int id, Product product)
@@ -90,7 +192,20 @@ namespace DiscountManagement.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/ProductData/AddProduct
+        /// <summary>
+        /// Adds a Product to the system
+        /// </summary>
+        /// <param name="product">JSON FORM DATA of a Product</param>
+        /// <returns>
+        /// HEADER: 201 (Created)
+        /// CONTENT: Product ID, Product Data
+        /// or
+        /// HEADER: 400 (Bad Request)
+        /// </returns>
+        /// <example>
+        /// POST: api/ProductData/AddProduct
+        /// FORM DATA: Product JSON Object
+        /// </example>
         [ResponseType(typeof(Product))]
         [HttpPost]
         public IHttpActionResult AddProduct(Product product)
@@ -106,7 +221,19 @@ namespace DiscountManagement.Controllers
             return CreatedAtRoute("DefaultApi", new { id = product.ProductID }, product);
         }
 
-        // DELETE: api/ProductData/DeleteProduct/5
+        /// <summary>
+        /// Deletes a Product from the system by it's ID.
+        /// </summary>
+        /// <param name="id">The primary key of the Product</param>
+        /// <returns>
+        /// HEADER: 200 (OK)
+        /// or
+        /// HEADER: 404 (NOT FOUND)
+        /// </returns>
+        /// <example>
+        /// POST: api/ProductData/DeleteProduct/5
+        /// FORM DATA: (empty)
+        /// </example>
         [ResponseType(typeof(Product))]
         [HttpPost]
         public IHttpActionResult DeleteProduct(int id)

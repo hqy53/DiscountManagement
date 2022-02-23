@@ -4,8 +4,7 @@
 }
 
 <h2>List</h2>
+<a href="/Product/New">New Product</a>
 @foreach (var product in Model) { 
     <h2><a href="/Product/Details/@product.ProductID">@product.ProductName</a></h2>
-    <div>Price: @product.Price</div>
-    <div>URL: @product.URL</div>
 }

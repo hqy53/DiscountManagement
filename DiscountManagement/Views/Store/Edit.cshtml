@@ -1,0 +1,26 @@
+﻿@model DiscountManagement.Models.ViewModels.UpdateStore
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Update Store</h2>
+<form action="/Store/Update/@Model.SelectedStore.StoreID" method="POST">
+    <div style="display:none;">
+        @* Pass through the store ID *@
+        <input type="text" name="StoreID" value="@Model.SelectedStore.StoreID" />
+    </div>
+    <div>
+        <label>Name:</label> <input type="text" name="StoreName" value="@Model.SelectedStore.StoreName"/>
+    </div>
+    <div>
+        <label>Discount code:</label> <input type="text" name="DiscountCode" value="@Model.SelectedStore.DiscountCode"/>
+    </div>
+    <div>
+        <label>Discount rate:</label> <input type="text" name="DiscountPercentage" value="@Model.SelectedStore.DiscountPercentage"/>
+    </div>
+
+    <div>
+        <input type="submit" value="Update Store" />
+
+    </div>
+</form>
