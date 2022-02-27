@@ -2,35 +2,49 @@
 @{
     ViewBag.Title = "Details";
 }
-
-<a href="/Store/List">Go back to store list</a>
-<br />
-<a href="/Store/Edit/@Model.SelectedStore.StoreID">Update</a>
-<br />
-<a style="color:#ab2020;" href="/Store/DeleteConfirm/@Model.SelectedStore.StoreID">Delete</a>
 <h2>@Model.SelectedStore.StoreName</h2>
-<div>Discount code: @Model.SelectedStore.DiscountCode</div>
-<div>Discount rate: @Model.SelectedStore.DiscountPercentage</div>
+<nav>
+    <ul>
+        <li><a href="/Store/List">Go back to store list</a></li>
+        <li><a href="/Store/Edit/@Model.SelectedStore.StoreID">Update</a></li>
+        <li><a style="color:#ab2020;" href="/Store/DeleteConfirm/@Model.SelectedStore.StoreID">Delete</a></li>
+    </ul>
+</nav>
+<div class="row">
+    <div class="col-md-6 col-sm-12">
+        @{
+            string imageurl = "/Content/Images/Stores/default.png";
+            if (Model.SelectedStore.StoreHasPic)
+            {
+                imageurl = "/Content/Images/Stores/" + Model.SelectedStore.StoreID + "." + Model.SelectedStore.PicExtension;
+            }
+        }
+        <div><img style="display:block; width:200px;" alt="@Model.SelectedStore.StoreName" src="@imageurl" /></div>
+        <div>Discount code: @Model.SelectedStore.DiscountCode</div>
+        <div>Discount rate: @Model.SelectedStore.DiscountPercentage</div>
+    </div>
+    <div class="col-md-6 col-sm-12">
+        <h4>@Model.SelectedStore.StoreName is selling:</h4>
+        @foreach (var product in Model.SellingProducts)
+        {
 
-<div>
-    <h2>@Model.SelectedStore.StoreName is selling:</h2>
-    @foreach (var product in Model.SellingProducts)
-    {
+            <a href="/Product/Details/@product.ProductID">@product.ProductName</a> <a style="color:#ab2020;" href="/Store/Unassociate/@Model.SelectedStore.StoreID?ProductID=@product.ProductID">[x]</a><br />
+        }
+        <div>
+            <h4>Add new Product to sell on @Model.SelectedStore.StoreName</h4>
+            <form method="POST" action="/Store/Associate/@Model.SelectedStore.StoreID">
+                <select name="ProductID">
+                    @foreach (var product in Model.AvailableProducts)
+                    {
+                        <option value="@product.ProductID">@product.ProductName</option>
+                    }
 
-        <a href="/Product/Details/@product.ProductID">@product.ProductName</a> <a style="color:#ab2020;" href="/Store/Unassociate/@Model.SelectedStore.StoreID?ProductID=@product.ProductID">[x]</a><br />
-    }
-
-    <div>
-        <h4>Add new Product to sell in @Model.SelectedStore.StoreName</h4>
-        <form method="POST" action="/Store/Associate/@Model.SelectedStore.StoreID">
-            <select name="ProductID">
-                @foreach (var product in Model.AvailableProducts)
-                {
-                    <option value="@product.ProductID">@product.ProductName</option>
-                }
-
-            </select>
-            <input type="submit" value="Associate Product" />
-        </form>
+                </select>
+                <input type="submit" value="Add Product" />
+            </form>
+        </div>
     </div>
 </div>
+
+
+

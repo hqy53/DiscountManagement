@@ -160,16 +160,34 @@ namespace DiscountManagement.Controllers
 
         // POST: Store/Update/5
         [HttpPost]
-        public ActionResult Update(int id, Store store)
-        {
+        public ActionResult Update(int id, Store store, HttpPostedFileBase StorePic)
+        {  
             string url = "storedata/updatestore/" + id;
             string jsonpayload = jss.Serialize(store);
             HttpContent content = new StringContent(jsonpayload);
             content.Headers.ContentType.MediaType = "application/json";
             HttpResponseMessage response = client.PostAsync(url, content).Result;
             Debug.WriteLine(content);
-            if (response.IsSuccessStatusCode)
+
+            //update request is successful, and we have image data
+            if (response.IsSuccessStatusCode && StorePic != null)
             {
+                //Updating the animal picture as a separate request
+                Debug.WriteLine("Calling Update Image method.");
+                //Send over image data for player
+                url = "StoreData/UploadStorePic/" + id;
+                Debug.WriteLine("Received Store Picture "+StorePic.FileName);
+
+                MultipartFormDataContent requestcontent = new MultipartFormDataContent();
+                HttpContent imagecontent = new StreamContent(StorePic.InputStream);
+                requestcontent.Add(imagecontent, "StorePic", StorePic.FileName);
+                response = client.PostAsync(url, requestcontent).Result;
+
+                return RedirectToAction("List");
+            }
+            else if (response.IsSuccessStatusCode)
+            {
+                //No image upload, but update still successful
                 return RedirectToAction("List");
             }
             else

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Web;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -166,7 +168,10 @@ namespace DiscountManagement.Controllers
                 StoreID = Store.StoreID,
                 StoreName = Store.StoreName,
                 DiscountCode = Store.DiscountCode,
-                DiscountPercentage = Store.DiscountPercentage
+                DiscountPercentage = Store.DiscountPercentage,
+                StoreHasPic = Store.StoreHasPic,
+                PicExtension = Store.PicExtension
+
             };
             if (Store == null)
             {
@@ -208,6 +213,9 @@ namespace DiscountManagement.Controllers
             }
 
             db.Entry(store).State = EntityState.Modified;
+            // Picture update is handled by another method
+            db.Entry(store).Property(s => s.StoreHasPic).IsModified = false;
+            db.Entry(store).Property(s => s.PicExtension).IsModified = false;
 
             try
             {
@@ -228,21 +236,21 @@ namespace DiscountManagement.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        /// <summary>
-        /// Adds a store to the system
-        /// </summary>
-        /// <param name="store">JSON FORM DATA of a store</param>
-        /// <returns>
-        /// HEADER: 201 (Created)
-        /// CONTENT: Animal ID, Animal Data
-        /// or
-        /// HEADER: 400 (Bad Request)
-        /// </returns>
-        /// <example>
-        /// POST: api/StoreData/AddStore
-        /// FORM DATA: Store JSON Object
-        /// </example>
-        [ResponseType(typeof(Store))]
+            /// <summary>
+            /// Adds a store to the system
+            /// </summary>
+            /// <param name="store">JSON FORM DATA of a store</param>
+            /// <returns>
+            /// HEADER: 201 (Created)
+            /// CONTENT: Animal ID, Animal Data
+            /// or
+            /// HEADER: 400 (Bad Request)
+            /// </returns>
+            /// <example>
+            /// POST: api/StoreData/AddStore
+            /// FORM DATA: Store JSON Object
+            /// </example>
+            [ResponseType(typeof(Store))]
         [HttpPost]
         public IHttpActionResult AddStore(Store store)
         {
@@ -255,6 +263,86 @@ namespace DiscountManagement.Controllers
             db.SaveChanges();
 
             return CreatedAtRoute("DefaultApi", new { id = store.StoreID }, store);
+        }
+        /// <summary>
+        /// Receives store picture data, uploads it to the webserver and updates the store's HasPic option
+        /// </summary>
+        /// <param name="id">the store id</param>
+        /// <returns>status code 200 if successful.</returns>
+        /// <example>
+        /// curl -F storepic=@file.jpg "https://localhost:xx/api/storedata/uploadstorepic/2"
+        /// POST: api/storeData/UpdatestorePic/3
+        /// HEADER: enctype=multipart/form-data
+        /// FORM-DATA: image
+        /// </example>
+        /// https://stackoverflow.com/questions/28369529/how-to-set-up-a-web-api-controller-for-multipart-form-data
+        [HttpPost]
+        public IHttpActionResult UploadStorePic(int id)
+        {
+            bool haspic = false;
+            string picextension;
+            if (Request.Content.IsMimeMultipartContent())
+            {
+                Debug.WriteLine("Received multipart form data.");
+
+                int numfiles = HttpContext.Current.Request.Files.Count;
+                Debug.WriteLine("Files Received: " + numfiles);
+
+                //Check if a file is posted
+                if (numfiles == 1 && HttpContext.Current.Request.Files[0] != null)
+                {
+                    var storePic = HttpContext.Current.Request.Files[0];
+                    //Check if the file is empty
+                    if (storePic.ContentLength > 0)
+                    {
+                        //establish valid file types (can be changed to other file extensions if desired!)
+                        var valtypes = new[] { "jpeg", "jpg", "png", "gif" };
+                        var extension = Path.GetExtension(storePic.FileName).Substring(1);
+                        //Check the extension of the file
+                        if (valtypes.Contains(extension))
+                        {
+                            try
+                            {
+                                //file name is the id of the image
+                                string fn = id + "." + extension;
+
+                                //get a direct file path to ~/Content/stores/{id}.{extension}
+                                string path = Path.Combine(HttpContext.Current.Server.MapPath("~/Content/Images/Stores/"), fn);
+
+                                //save the file
+                                storePic.SaveAs(path);
+
+                                //if these are all successful then we can set these fields
+                                haspic = true;
+                                picextension = extension;
+
+                                //Update the store haspic and picextension fields in the database
+                                Store Selectedstore = db.Stores.Find(id);
+                                Selectedstore.StoreHasPic = haspic;
+                                Selectedstore.PicExtension = extension;
+                                db.Entry(Selectedstore).State = EntityState.Modified;
+
+                                db.SaveChanges();
+
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine("store Image was not saved successfully.");
+                                Debug.WriteLine("Exception:" + ex);
+                                return BadRequest();
+                            }
+                        }
+                    }
+
+                }
+
+                return Ok();
+            }
+            else
+            {
+                //not multipart form data
+                return BadRequest();
+            }
         }
 
         /// <summary>

@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
 using DiscountManagement.Models;
+using System.Diagnostics;
 
 namespace DiscountManagement.Controllers
 {
@@ -191,6 +192,7 @@ namespace DiscountManagement.Controllers
 
             return StatusCode(HttpStatusCode.NoContent);
         }
+
 
         /// <summary>
         /// Adds a Product to the system

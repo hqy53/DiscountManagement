@@ -214,6 +214,10 @@
     <Compile Include="Migrations\202202142107397_ProductDto.Designer.cs">
       <DependentUpon>202202142107397_ProductDto.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202202231340273_testMigration.cs" />
+    <Compile Include="Migrations\202202231340273_testMigration.Designer.cs">
+      <DependentUpon>202202231340273_testMigration.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
@@ -331,6 +335,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202202142107397_ProductDto.resx">
       <DependentUpon>202202142107397_ProductDto.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202231340273_testMigration.resx">
+      <DependentUpon>202202231340273_testMigration.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -24,5 +24,6 @@ namespace DiscountManagement.Models
         public string ProductName { get; set; }
         public decimal Price { get; set; }
         public string URL { get; set; }
+
     }
 }

@@ -4,6 +4,13 @@
 }
 
 <h2>Update Product</h2>
+<nav>
+    <ul>
+        <li><a href="/Product/List">Go back to product list</a></li>
+
+        <li><a style="color:#ab2020;" href="/Product/DeleteConfirm/@Model.ProductID">Delete</a></li>
+    </ul>
+</nav>
 <form action="/Product/Update/@Model.ProductID" method="POST">
     <div style="display:none;">
         @* Pass through the Product ID *@
