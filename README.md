@@ -14,4 +14,3 @@ API call for removing an association between a product and a store
 Views which support the above API calls as interfaces.
 Store Image upload feature
 
-TO-DO: Create a URL table that stores the URLs of a product, because a product might have many URLs for different stores.
